@@ -257,7 +257,7 @@ static int razer_get_report(struct usb_device *usb_dev, struct razer_report *req
     uint report_index;
     uint response_index;
     switch (usb_dev->descriptor.idProduct) {
-	case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+    case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
     case USB_DEVICE_ID_RAZER_HUNTSMAN_V2_ANALOG:
     case USB_DEVICE_ID_RAZER_BLACKWIDOW_V3_MINI:
     case USB_DEVICE_ID_RAZER_BLACKWIDOW_V3:
@@ -437,16 +437,16 @@ static ssize_t razer_attr_write_mode_game(struct device *dev, struct device_attr
     struct usb_device *usb_dev = interface_to_usbdev(intf);
     struct razer_report report = {0};
     unsigned char enabled = (unsigned char)simple_strtoul(buf, NULL, 10);
-    
+
     switch(usb_dev->descriptor.idProduct) {
     case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
-    report = razer_chroma_standard_set_led_state(NOSTORE, GAME_LED, enabled);
+        report = razer_chroma_standard_set_led_state(NOSTORE, GAME_LED, enabled);
         report.transaction_id.id = 0x1f;
         break;
     default:
-    report = razer_chroma_standard_set_led_state(VARSTORE, GAME_LED, enabled);
-    }    
-    
+        report = razer_chroma_standard_set_led_state(VARSTORE, GAME_LED, enabled);
+    }
+
     razer_send_payload(usb_dev, &report);
 
     return count;
@@ -466,12 +466,12 @@ static ssize_t razer_attr_read_mode_game(struct device *dev, struct device_attri
 
     switch(usb_dev->descriptor.idProduct) {
     case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
-    report = razer_chroma_standard_get_led_state(NOSTORE, GAME_LED);
+        report = razer_chroma_standard_get_led_state(NOSTORE, GAME_LED);
         report.transaction_id.id = 0x1f;
         break;
     default:
-    report = razer_chroma_standard_get_led_state(VARSTORE, GAME_LED);    
-    }    
+        report = razer_chroma_standard_get_led_state(VARSTORE, GAME_LED);
+    }
 
     response = razer_send_payload(usb_dev, &report);
     return sprintf(buf, "%d\n", response.arguments[2]);
