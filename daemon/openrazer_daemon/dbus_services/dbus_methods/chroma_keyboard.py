@@ -97,7 +97,7 @@ def set_game_mode(self, enable):
             super_file = os.path.join(kb_int, 'key_super')
             alt_tab = os.path.join(kb_int, 'key_alt_tab')
             alt_f4 = os.path.join(kb_int, 'key_alt_f4')
-            
+
             if enable:
                 open(super_file, 'wb').write(b'\x01')
                 open(alt_tab, 'wb').write(b'\x01')
