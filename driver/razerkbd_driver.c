@@ -2354,6 +2354,76 @@ static ssize_t razer_attr_write_matrix_custom_frame(struct device *dev, struct d
     return count;
 }
 
+/**
+ * Read device file "poll_rate"
+ *
+ * Returns a string
+ */
+static ssize_t razer_attr_read_poll_rate(struct device *dev, struct device_attribute *attr, char *buf)
+{
+    struct usb_interface *intf = to_usb_interface(dev->parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    struct razer_report report = razer_chroma_misc_get_polling_rate();
+    struct razer_report response_report = {0};
+    unsigned short polling_rate = 0;
+
+    switch(usb_dev->descriptor.idProduct) {
+    case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+        report = razer_chroma_misc_get_polling_rate2();
+        report.transaction_id.id = 0x1f;
+        break;
+    }
+
+    response_report = razer_send_payload(usb_dev, &report);
+
+    switch(response_report.arguments[1]) {
+    case 0x01:
+        polling_rate = 8000;
+        break;
+    case 0x02:
+        polling_rate = 4000;
+        break;
+    case 0x04:
+        polling_rate = 2000;
+        break;
+    case 0x08:
+        polling_rate = 1000;
+        break;
+    case  0x10:
+        polling_rate = 500;
+        break;
+    case  0x40:
+        polling_rate = 125;
+        break;
+    }
+
+    return sprintf(buf, "%d\n", polling_rate);
+}
+
+/**
+ * Write device file "poll_rate"
+ *
+ * Sets the poll rate
+ */
+static ssize_t razer_attr_write_poll_rate(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+    struct usb_interface *intf = to_usb_interface(dev->parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    unsigned short polling_rate = (unsigned short)simple_strtoul(buf, NULL, 10);
+    struct razer_report report = razer_chroma_misc_get_polling_rate();
+
+    switch(usb_dev->descriptor.idProduct) {
+    case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+        report = razer_chroma_misc_set_polling_rate2(polling_rate);
+        report.transaction_id.id = 0x1f;
+        break;
+    }
+
+    razer_send_payload(usb_dev, &report);
+
+    return count;
+}
+
 
 
 static ssize_t razer_attr_write_key_super(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -2441,6 +2511,7 @@ static DEVICE_ATTR(version,                 0440, razer_attr_read_version,      
 static DEVICE_ATTR(kbd_layout,              0440, razer_attr_read_kbd_layout,                 NULL);
 static DEVICE_ATTR(firmware_version,        0440, razer_attr_read_get_firmware_version,       NULL);
 static DEVICE_ATTR(fn_toggle,               0220, NULL,                                       razer_attr_write_set_fn_toggle);
+static DEVICE_ATTR(poll_rate,               0660, razer_attr_read_poll_rate,                  razer_attr_write_poll_rate);
 
 static DEVICE_ATTR(device_type,             0440, razer_attr_read_device_type,                NULL);
 static DEVICE_ATTR(device_mode,             0660, razer_attr_read_device_mode,                razer_attr_write_device_mode);
@@ -2998,6 +3069,7 @@ static int razer_kbd_probe(struct hid_device *hdev, const struct hid_device_id *
             break;
 
         case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_poll_rate);                     // Poll Rate
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_super);                     // Super Key
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_alt_tab);                   // Alt + Tab
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_alt_f4);                    // Alt + F4
@@ -3380,6 +3452,7 @@ static void razer_kbd_disconnect(struct hid_device *hdev)
             break;
 
         case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            device_remove_file(&hdev->dev, &dev_attr_poll_rate);                     // Poll Rate
             device_remove_file(&hdev->dev, &dev_attr_key_super);                     // Super Key
             device_remove_file(&hdev->dev, &dev_attr_key_alt_tab);                   // Alt + Tab
             device_remove_file(&hdev->dev, &dev_attr_key_alt_f4);                    // Alt + F4
