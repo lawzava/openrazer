@@ -909,6 +909,89 @@ struct razer_report razer_chroma_misc_fn_key_toggle(unsigned char state)
 }
 
 /**
+ * Set the keyswitch optimization on the device
+ *
+ * Status Trans Packet Proto DataSize Class CMD Args
+ * 00     1f    0000   00    04       02    02  000000000000               | SET KEY OPTIMIZATION STATE (GAMING Pt1)
+ * 00     1f    0000   00    05       02    15  010000000000               | SET KEY OPTIMIZATION STATE (GAMING Pt2) VARSTORE ????
+ */
+struct razer_report razer_chroma_misc_set_keyswitch_optimization_gaming_pt1(void)
+{
+    struct razer_report report = get_razer_report(0x02, 0x02, 0x04); // calss, id, data size
+
+    return report;
+}
+
+/**
+ * Set the keyswitch optimization on the device
+ *
+ * Status Trans Packet Proto DataSize Class CMD Args
+ * 00     1f    0000   00    04       02    02  000000000000               | SET KEY OPTIMIZATION STATE (GAMING Pt1)
+ * 00     1f    0000   00    05       02    15  010000000000               | SET KEY OPTIMIZATION STATE (GAMING Pt2) VARSTORE ????
+ */
+struct razer_report razer_chroma_misc_set_keyswitch_optimization_gaming_pt2(void)
+{
+    struct razer_report report = get_razer_report(0x02, 0x15, 0x05); // calss, id, data size
+    report.arguments[0] = 0x01;
+
+    return report;
+}
+
+/**
+ * Set the keyswitch optimization on the device
+ *
+ * Status Trans Packet Proto DataSize Class CMD Args
+ * 00     1f    0000   00    04       02    02  001400280000               | SET KEY OPTIMIZATION STATE (TYPING Pt1)
+ * 00     1f    0000   00    05       02    15  010014002800               | SET KEY OPTIMIZATION STATE (TYPING Pt2) VARSTORE ????
+ */
+struct razer_report razer_chroma_misc_set_keyswitch_optimization_typing_pt1(void)
+{
+    struct razer_report report = get_razer_report(0x02, 0x02, 0x04); // calss, id, data size
+    report.arguments[0] = 0x00;
+    report.arguments[1] = 0x14;
+    report.arguments[2] = 0x00;
+    report.arguments[3] = 0x28;
+    report.arguments[4] = 0x00;
+
+    return report;
+}
+
+/**
+ * Set the keyswitch optimization on the device
+ *
+ * Status Trans Packet Proto DataSize Class CMD Args
+ * 00     1f    0000   00    04       02    02  001400280000               | SET KEY OPTIMIZATION STATE (TYPING Pt1)
+ * 00     1f    0000   00    05       02    15  010014002800               | SET KEY OPTIMIZATION STATE (TYPING Pt2) VARSTORE ????
+ */
+struct razer_report razer_chroma_misc_set_keyswitch_optimization_typing_pt2(void)
+{
+    struct razer_report report = get_razer_report(0x02, 0x15, 0x05); // calss, id, data size
+    report.arguments[0] = 0x01;
+    report.arguments[1] = 0x00;
+    report.arguments[2] = 0x14;
+    report.arguments[3] = 0x00;
+    report.arguments[4] = 0x28;
+    report.arguments[5] = 0x00;
+
+    return report;
+}
+
+/**
+ * Get the keyswitch optimization on the device
+ *
+ * Identifiers in arg[1] and arg[3]
+ *
+ * 0x00<->0x14 is in arg[1]
+ * 0x00<->0x28 is in arg[3]
+ */
+struct razer_report razer_chroma_misc_get_keyswitch_optimization(void)
+{
+    struct razer_report report = get_razer_report(0x02, 0x82, 0x04); // calss, id, data size
+
+    return report;
+}
+
+/**
  * Set the brightness of an LED on the device
  *
  * Status Trans Packet Proto DataSize Class CMD Args

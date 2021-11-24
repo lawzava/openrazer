@@ -149,6 +149,41 @@ def set_macro_mode(self, enable):
             driver_file.write('0')
 
 
+@endpoint('razer.device.misc.keyswitchoptimization', 'getKeyswitchOptimization', out_sig='b')
+def get_keyswitch_optimization(self):
+    """
+    Get Keyswitch optimization state
+
+    :return: Status of keyswitch optimization
+    :rtype: bool
+    """
+    self.logger.debug("DBus call get_keyswitch_optimization")
+
+    driver_path = self.get_driver_path('keyswitch_optimization')
+
+    with open(driver_path, 'r') as driver_file:
+        return driver_file.read().strip() == '1'
+
+
+@endpoint('razer.device.misc.keyswitchoptimization', 'setKeyswitchOptimization', in_sig='b')
+def set_keyswitch_optimization(self, enable):
+    """
+    Set Keyswitch optimization state
+
+    :param enable: Status of keyswitch optimization
+    :type enable: bool
+    """
+    self.logger.debug("DBus call set_keyswitch_optimization")
+
+    driver_path = self.get_driver_path('keyswitch_optimization')
+
+    with open(driver_path, 'w') as driver_file:
+        if enable:
+            driver_file.write('1')
+        else:
+            driver_file.write('0')
+
+
 @endpoint('razer.device.led.macromode', 'getMacroEffect', out_sig='i')
 def get_macro_effect(self):
     """

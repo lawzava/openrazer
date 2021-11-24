@@ -478,6 +478,100 @@ static ssize_t razer_attr_read_mode_game(struct device *dev, struct device_attri
 }
 
 /**
+ * Write device file "keyswitch_optimization"
+ */
+static ssize_t razer_attr_write_keyswitch_optimization(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+    struct usb_interface *intf = to_usb_interface(dev->parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    struct razer_report report = {0};
+    unsigned char state = (unsigned char)simple_strtoul(buf, NULL, 10);
+
+    // Enable Gaming Keyswitch Optimization
+    if(state == 1) {
+        switch(usb_dev->descriptor.idProduct) {
+        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt1();
+            report.transaction_id.id = 0x1f;
+            break;
+        default:
+            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt1();
+        }
+
+        razer_send_payload(usb_dev, &report);
+
+        switch(usb_dev->descriptor.idProduct) {
+        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt2();
+            report.transaction_id.id = 0x1f;
+            break;
+        default:
+            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt2();
+        }
+
+        razer_send_payload(usb_dev, &report);
+
+        // Enable Typing Keyswitch Optimization
+    } else if (state == 0) {
+        switch(usb_dev->descriptor.idProduct) {
+        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt1();
+            report.transaction_id.id = 0x1f;
+            break;
+        default:
+            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt1();
+        }
+
+        razer_send_payload(usb_dev, &report);
+
+        switch(usb_dev->descriptor.idProduct) {
+        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt2();
+            report.transaction_id.id = 0x1f;
+            break;
+        default:
+            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt2();
+        }
+
+        razer_send_payload(usb_dev, &report);
+    }
+
+    return count;
+}
+
+/**
+ * Read device file "keyswitch_optimization"
+ */
+static ssize_t razer_attr_read_keyswitch_optimization(struct device *dev, struct device_attribute *attr, char *buf)
+{
+    struct usb_interface *intf = to_usb_interface(dev->parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    struct razer_report report = {0};
+    struct razer_report response = {0};
+    int state;
+
+    switch(usb_dev->descriptor.idProduct) {
+    case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+        report = razer_chroma_misc_get_keyswitch_optimization();
+        report.transaction_id.id = 0x1f;
+        break;
+    default:
+        report = razer_chroma_misc_get_keyswitch_optimization();
+    }
+
+    response = razer_send_payload(usb_dev, &report);
+    state = response.arguments[1]; // Either 0x00 or 0x14
+
+    if(state == 0x14) {
+        state = 0; // Typing
+    } else {
+        state = 1; // Gaming
+    }
+
+    return sprintf(buf, "%d\n", state);
+}
+
+/**
  * Write device file "mode_macro"
  *
  * When 1 is written (as a character, 0x31) Macro mode will be enabled, if 0 is written (0x30)
@@ -1883,9 +1977,9 @@ static int has_inverted_led_state(struct device *dev)
 }
 
 /**
- * Write device file "set_logo"
+ * Reads device file "set_logo"
  *
- * Sets the logo lighting state to the ASCII number written to this file.
+ * Reads the logo lighting state (the ASCII number) written to this file.
  */
 static ssize_t razer_attr_read_set_logo(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -2512,6 +2606,7 @@ static DEVICE_ATTR(kbd_layout,              0440, razer_attr_read_kbd_layout,   
 static DEVICE_ATTR(firmware_version,        0440, razer_attr_read_get_firmware_version,       NULL);
 static DEVICE_ATTR(fn_toggle,               0220, NULL,                                       razer_attr_write_set_fn_toggle);
 static DEVICE_ATTR(poll_rate,               0660, razer_attr_read_poll_rate,                  razer_attr_write_poll_rate);
+static DEVICE_ATTR(keyswitch_optimization,  0660, razer_attr_read_keyswitch_optimization,     razer_attr_write_keyswitch_optimization);
 
 static DEVICE_ATTR(device_type,             0440, razer_attr_read_device_type,                NULL);
 static DEVICE_ATTR(device_mode,             0660, razer_attr_read_device_mode,                razer_attr_write_device_mode);
@@ -3070,6 +3165,7 @@ static int razer_kbd_probe(struct hid_device *hdev, const struct hid_device_id *
 
         case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_poll_rate);                     // Poll Rate
+            CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_keyswitch_optimization);        // Keyswitch Optimization
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_super);                     // Super Key
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_alt_tab);                   // Alt + Tab
             CREATE_DEVICE_FILE(&hdev->dev, &dev_attr_key_alt_f4);                    // Alt + F4
@@ -3453,6 +3549,7 @@ static void razer_kbd_disconnect(struct hid_device *hdev)
 
         case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
             device_remove_file(&hdev->dev, &dev_attr_poll_rate);                     // Poll Rate
+            device_remove_file(&hdev->dev, &dev_attr_keyswitch_optimization);        // Keyswitch Optimization
             device_remove_file(&hdev->dev, &dev_attr_key_super);                     // Super Key
             device_remove_file(&hdev->dev, &dev_attr_key_alt_tab);                   // Alt + Tab
             device_remove_file(&hdev->dev, &dev_attr_key_alt_f4);                    // Alt + F4

@@ -32,6 +32,7 @@ declare -A files_metadata=(
     ["fully_charged_matrix_effect_static"]="w;"
     ["fully_charged_matrix_effect_wave"]="w;"
     ["game_led_state"]="rw;0"
+    ["keyswitch_optimization"]="rw;0"
     ["is_mug_present"]="r;0"
     ["kbd_layout"]="r;01"
     ["key_alt_f4"]="rw;0x00"
