@@ -547,9 +547,8 @@ static ssize_t razer_attr_read_keyswitch_optimization(struct device *dev, struct
     }
 
     response = razer_send_payload(usb_dev, &report);
-    state = response.arguments[1]; // Either 0x00 or 0x14
 
-    if(state == 0x14) {
+    if(response.arguments[1] == 0x14) { // Either 0x00 or 0x14
         state = 0; // Typing
     } else {
         state = 1; // Gaming
