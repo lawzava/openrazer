@@ -568,42 +568,25 @@ static ssize_t razer_attr_write_keyswitch_optimization(struct device *dev, struc
     struct usb_interface *intf = to_usb_interface(dev->parent);
     struct usb_device *usb_dev = interface_to_usbdev(intf);
     struct razer_report report = {0};
-    unsigned char state = (unsigned char)simple_strtoul(buf, NULL, 10);
+    unsigned char mode = (unsigned char)simple_strtoul(buf, NULL, 10);
 
-    // Enable Gaming Keyswitch Optimization
-    if(state == 1) {
-        switch(usb_dev->descriptor.idProduct) {
-        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
-            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt1();
-            report.transaction_id.id = 0x1f;
-            razer_send_payload(usb_dev, &report);
-            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt2();
-            report.transaction_id.id = 0x1f;
-            razer_send_payload(usb_dev, &report);
-            break;
-        default:
-            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt1();
-            razer_send_payload(usb_dev, &report);
-            report = razer_chroma_misc_set_keyswitch_optimization_gaming_pt2();
-            razer_send_payload(usb_dev, &report);
-        }
-        // Enable Typing Keyswitch Optimization
-    } else if (state == 0) {
-        switch(usb_dev->descriptor.idProduct) {
-        case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
-            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt1();
-            report.transaction_id.id = 0x1f;
-            razer_send_payload(usb_dev, &report);
-            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt2();
-            report.transaction_id.id = 0x1f;
-            razer_send_payload(usb_dev, &report);
-            break;
-        default:
-            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt1();
-            razer_send_payload(usb_dev, &report);
-            report = razer_chroma_misc_set_keyswitch_optimization_typing_pt2();
-            razer_send_payload(usb_dev, &report);
-        }
+    // Toggle Keyswitch Optimization
+    switch(usb_dev->descriptor.idProduct) {
+    case USB_DEVICE_ID_RAZER_HUNTSMAN_V2:
+        report = razer_chroma_misc_set_keyswitch_optimization(NOSTORE, mode);
+        report.transaction_id.id = 0x1f;
+        razer_send_payload(usb_dev, &report);
+        report = razer_chroma_misc_set_keyswitch_optimization(VARSTORE, mode);
+        report.transaction_id.id = 0x1f;
+        razer_send_payload(usb_dev, &report);
+        break;
+    default:
+        report = razer_chroma_misc_set_keyswitch_optimization(NOSTORE, mode);
+        report.transaction_id.id = 0x1f;
+        razer_send_payload(usb_dev, &report);
+        report = razer_chroma_misc_set_keyswitch_optimization(VARSTORE, mode);
+        report.transaction_id.id = 0x1f;
+        razer_send_payload(usb_dev, &report);
     }
 
     return count;
