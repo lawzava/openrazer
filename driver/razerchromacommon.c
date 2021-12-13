@@ -1168,6 +1168,9 @@ struct razer_report razer_chroma_misc_set_polling_rate2(unsigned short polling_r
     case  500:
         report.arguments[1] = 0x10;
         break;
+    case  250:
+        report.arguments[1] = 0x20;
+        break;
     case  125:
         report.arguments[1] = 0x40;
         break;

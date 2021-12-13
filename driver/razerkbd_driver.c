@@ -2559,6 +2559,9 @@ static ssize_t razer_attr_read_poll_rate(struct device *dev, struct device_attri
     case  0x10:
         polling_rate = 500;
         break;
+    case  0x20:
+        polling_rate = 250;
+        break;
     case  0x40:
         polling_rate = 125;
         break;
